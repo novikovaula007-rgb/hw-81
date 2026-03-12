@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import mongoose from 'mongoose';
 import Link from "./models/Link";
+import {customAlphabet} from "nanoid";
 
 const app = express();
 const port = 8000;
@@ -23,13 +24,49 @@ const run = async () => {
 
 app.get('/:shortURL', async (req, res) => {
     try {
-        const originalLink = await Link.findOne({shortURL: req.body.params});
+        const {shortURL} = req.params;
+        const originalLink = await Link.findOne({shortURL});
 
         if (originalLink) {
             return res.status(301).redirect(originalLink.originalURL);
         } else {
             return res.status(404).send('URL not found');
         }
+    } catch (e) {
+        console.error(e)
+        res.status(500).send(e);
+    }
+})
+
+
+app.post('/', async (req, res) => {
+    try {
+        const {originalLink} = req.body;
+
+        if (!originalLink) {
+            return res.status(404).send('URL is required');
+        }
+
+        let shortURL;
+        let isUnique = false;
+
+        while (!isUnique) {
+            const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            shortURL = customAlphabet(alphabet, 7);
+            const existing = await Link.findOne({shortURL});
+            if (!existing) {
+                isUnique = true;
+            }
+        }
+
+        const newLink = new Link({
+            originalURL: originalLink,
+            shortURL: shortURL
+        })
+
+        await newLink.save();
+
+        return res.send(newLink)
     } catch (e) {
         console.error(e)
         res.status(500).send(e);
