@@ -18,7 +18,7 @@ const LinkShortener = () => {
             if (linkForm.trim()) {
                 const newLink = await axiosAPI.post<ILinkAPI>('/', {originalLink: linkForm});
                 setShortLink(newLink.data.shortURL);
-                console.log(shortLink)
+                setLinkForm('');
             } else {
                 toast.error('The link field cannot be empty.');
             }
