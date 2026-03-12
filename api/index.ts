@@ -26,7 +26,6 @@ app.get('/:shortURL', async (req, res) => {
     try {
         const {shortURL} = req.params;
         const originalLink = await Link.findOne({shortURL});
-
         if (originalLink) {
             return res.status(301).redirect(originalLink.originalURL);
         } else {
@@ -37,7 +36,6 @@ app.get('/:shortURL', async (req, res) => {
         res.status(500).send(e);
     }
 })
-
 
 app.post('/', async (req, res) => {
     try {
@@ -52,7 +50,8 @@ app.post('/', async (req, res) => {
 
         while (!isUnique) {
             const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            shortURL = customAlphabet(alphabet, 7);
+            const nanoid = customAlphabet(alphabet, 7);
+            shortURL = nanoid();
             const existing = await Link.findOne({shortURL});
             if (!existing) {
                 isUnique = true;
@@ -65,7 +64,6 @@ app.post('/', async (req, res) => {
         })
 
         await newLink.save();
-
         return res.send(newLink)
     } catch (e) {
         console.error(e)
